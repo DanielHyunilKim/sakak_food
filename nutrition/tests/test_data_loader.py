@@ -5,7 +5,7 @@ import pandas as pd
 
 from nutrition.data_loader import (
     EXCEL_COLUMN_MAPPING,
-    MAX_BULK_CREATE_BATCH_SIZE,
+    UPSERT_UPDATE_FIELDS,
     bulk_create_food_objs,
     load_food_excel,
 )
@@ -29,7 +29,7 @@ def test_bulk_creates_foods_in_batches(monkeypatch):
     food_df = pd.DataFrame(
         {"id": [f"food-{index}" for index in range(15)]}
     )
-    bulk_create = Mock(side_effect=lambda food_objs, batch_size: food_objs)
+    bulk_create = Mock(side_effect=lambda food_objs, **kwargs: food_objs)
     monkeypatch.setattr(Food.objects, "bulk_create", bulk_create)
 
     created_count = bulk_create_food_objs(food_df, batch_size=10)
@@ -37,4 +37,7 @@ def test_bulk_creates_foods_in_batches(monkeypatch):
     food_objs = bulk_create.call_args.args[0]
     assert created_count == 15
     assert bulk_create.call_args.kwargs["batch_size"] == 10
+    assert bulk_create.call_args.kwargs["update_conflicts"] is True
+    assert bulk_create.call_args.kwargs["update_fields"] == UPSERT_UPDATE_FIELDS
+    assert bulk_create.call_args.kwargs["unique_fields"] == ["food_cd"]
     assert all(isinstance(food, Food) for food in food_objs)

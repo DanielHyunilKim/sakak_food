@@ -1,5 +1,3 @@
-from decimal import Decimal
-
 from pathlib import Path
 
 import pandas as pd
@@ -32,6 +30,12 @@ EXCEL_COLUMN_MAPPING = {
     "트랜스 지방산(g)": "trans_fat",
 }
 
+UPSERT_UPDATE_FIELDS = [
+    field
+    for field in EXCEL_COLUMN_MAPPING.values()
+    if field not in {"id", "food_cd"}
+]
+
 
 def load_food_excel(excel_file: Path) -> pd.DataFrame:
     food_df = pd.read_excel(
@@ -44,7 +48,10 @@ def load_food_excel(excel_file: Path) -> pd.DataFrame:
     )
 
 
-def bulk_create_food_objs(food_df: pd.DataFrame, batch_size: int = MAX_BULK_CREATE_BATCH_SIZE) -> int:
+def bulk_create_food_objs(
+    food_df: pd.DataFrame,
+    batch_size: int = MAX_BULK_CREATE_BATCH_SIZE,
+) -> int:
     food_objs = [
         Food(**food_data)
         for food_data in food_df.to_dict(orient="records")
@@ -52,5 +59,8 @@ def bulk_create_food_objs(food_df: pd.DataFrame, batch_size: int = MAX_BULK_CREA
     created_food_objs = Food.objects.bulk_create(
         food_objs,
         batch_size=batch_size,
+        update_conflicts=True,
+        update_fields=UPSERT_UPDATE_FIELDS,
+        unique_fields=["food_cd"],
     )
     return len(created_food_objs)

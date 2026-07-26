@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 class Food(models.Model):
     id = models.CharField(primary_key=True)
-    food_cd = models.CharField()
+    food_cd = models.CharField(unique=True)
     group_name_major = models.CharField()
     group_name_minor = models.CharField()
     food_name = models.CharField()
