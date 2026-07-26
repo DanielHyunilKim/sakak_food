@@ -51,6 +51,15 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Food Nutrition API",
+    "DESCRIPTION": (
+        "대한민국 식품영양성분 데이터를 검색하고 관리하는 REST API"
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -160,4 +169,11 @@ LOGGING = {
             "propagate": False,
         },
     },
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Food Nutrition API",
+    "DESCRIPTION": "Search and manage Korean food nutrition data.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }

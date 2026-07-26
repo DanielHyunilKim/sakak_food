@@ -27,7 +27,6 @@ class Command(BaseCommand):
             default=MAX_BULK_CREATE_BATCH_SIZE,
             help=f"Rows per database batch (default: {MAX_BULK_CREATE_BATCH_SIZE}).",
         )
-
     def handle(self, *args, **options):
         excel_file = options["excel_file"]
         batch_size = options["batch_size"]

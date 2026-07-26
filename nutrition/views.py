@@ -1,8 +1,15 @@
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
+from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from nutrition.models import Food
+from nutrition.openapi import (
+    INTERNAL_ERROR_RESPONSE,
+    NOT_FOUND_RESPONSE,
+    SEARCH_PARAMETERS,
+    VALIDATION_ERROR_RESPONSE,
+)
 from nutrition.serializers import FoodSerializer
 
 
@@ -12,6 +19,63 @@ class FoodPagination(PageNumberPagination):
     max_page_size = 100
 
 
+@extend_schema_view(
+    list=extend_schema(
+        summary="식품 목록 검색",
+        description=(
+            "식품명, 조사년도, 지역/제조사, 식품코드로 검색합니다. "
+            "여러 조건은 AND로 결합되며 결과는 페이지네이션됩니다."
+        ),
+        parameters=SEARCH_PARAMETERS,
+        responses={
+            200: FoodSerializer(many=True),
+            400: VALIDATION_ERROR_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+    create=extend_schema(
+        summary="식품 생성",
+        responses={
+            201: FoodSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+    retrieve=extend_schema(
+        summary="식품 상세 조회",
+        responses={
+            200: FoodSerializer,
+            404: NOT_FOUND_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+    update=extend_schema(
+        summary="식품 전체 수정",
+        responses={
+            200: FoodSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            404: NOT_FOUND_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+    partial_update=extend_schema(
+        summary="식품 일부 수정",
+        responses={
+            200: FoodSerializer,
+            400: VALIDATION_ERROR_RESPONSE,
+            404: NOT_FOUND_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+    destroy=extend_schema(
+        summary="식품 삭제",
+        responses={
+            204: None,
+            404: NOT_FOUND_RESPONSE,
+            500: INTERNAL_ERROR_RESPONSE,
+        },
+    ),
+)
 class FoodViewSet(viewsets.ModelViewSet):
     """CRUD API for food items with case-insensitive filtering."""
 

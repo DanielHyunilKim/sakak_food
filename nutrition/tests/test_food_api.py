@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from rest_framework import status
 
@@ -56,6 +58,63 @@ def test_duplicate_food_code_returns_400(api_client, food_payload):
     assert response.data["error"]["code"] == "validation_error"
     assert "food_cd" in response.data["error"]["details"]
     assert Food.objects.filter(food_cd=food_payload["food_cd"]).count() == 1
+
+
+def test_duplicate_id_returns_400(api_client, food_payload):
+    create_food(food_payload)
+    duplicate_payload = food_payload | {"food_cd": "DIFFERENT-FOOD-CODE"}
+
+    response = api_client.post(
+        "/api/foods/",
+        duplicate_payload,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["error"]["code"] == "validation_error"
+    assert "id" in response.data["error"]["details"]
+    assert Food.objects.filter(pk=food_payload["id"]).count() == 1
+
+
+def test_invalid_create_payload_returns_400(api_client, food_payload):
+    invalid_payload = food_payload.copy()
+    invalid_payload.pop("food_name")
+    invalid_payload["fat"] = "-1.00"
+
+    response = api_client.post(
+        "/api/foods/",
+        invalid_payload,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["error"]["status"] == 400
+    assert response.data["error"]["code"] == "validation_error"
+    assert {"food_name", "fat"}.issubset(
+        response.data["error"]["details"]
+    )
+    assert Food.objects.count() == 0
+
+
+def test_full_put_replaces_food(api_client, food_payload):
+    create_food(food_payload)
+    replacement_payload = food_payload | {
+        "food_name": "닭갈비",
+        "maker_name": "춘천",
+        "calorie": "558.47",
+    }
+
+    response = api_client.put(
+        f"/api/foods/{food_payload['id']}/",
+        replacement_payload,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    food = Food.objects.get(pk=food_payload["id"])
+    assert food.food_name == "닭갈비"
+    assert food.maker_name == "춘천"
+    assert food.calorie == Decimal("558.47")
 
 
 def test_partial_search_trims_spaces(
@@ -225,6 +284,28 @@ def test_list_is_paginated(api_client, food_payload):
 
 def test_missing_food_returns_404(api_client):
     response = api_client.get("/api/foods/missing/")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data["error"]["status"] == 404
+    assert response.data["error"]["code"] == "not_found"
+    assert "detail" in response.data["error"]["details"]
+
+
+def test_updating_missing_food_returns_404(api_client):
+    response = api_client.patch(
+        "/api/foods/missing/",
+        {"food_name": "닭갈비"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data["error"]["status"] == 404
+    assert response.data["error"]["code"] == "not_found"
+    assert "detail" in response.data["error"]["details"]
+
+
+def test_deleting_missing_food_returns_404(api_client):
+    response = api_client.delete("/api/foods/missing/")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert response.data["error"]["status"] == 404

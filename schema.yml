@@ -1,13 +1,51 @@
 openapi: 3.0.3
 info:
-  title: ''
-  version: 0.0.0
+  title: Food Nutrition API
+  version: 1.0.0
+  description: Search and manage Korean food nutrition data.
 paths:
   /api/foods/:
     get:
-      operationId: api_foods_list
-      description: CRUD API for food items with case-insensitive filtering.
+      operationId: foods_list
+      description: 식품명, 조사년도, 지역/제조사, 식품코드로 검색합니다. 여러 조건은 AND로 결합되며 결과는 페이지네이션됩니다.
+      summary: 식품 목록 검색
       parameters:
+      - in: query
+        name: food_code
+        schema:
+          type: string
+        description: 식품코드(food_cd). 대소문자를 구분하지 않습니다.
+        examples:
+          FoodCode:
+            value: D000008
+            summary: Food code
+      - in: query
+        name: food_name
+        schema:
+          type: string
+        description: 식품명. match 방식에 따라 부분 또는 정확 일치합니다.
+        examples:
+          FoodName:
+            value: 닭갈비
+            summary: Food name
+      - in: query
+        name: maker_name
+        schema:
+          type: string
+        description: 지역/제조사. match 방식에 따라 부분 또는 정확 일치합니다.
+        examples:
+          MakerOrRegion:
+            value: 춘천
+            summary: Maker or region
+      - in: query
+        name: match
+        schema:
+          type: string
+          enum:
+          - exact
+          - partial
+          default: partial
+        description: 텍스트 검색 방식. 기본값은 partial입니다.
       - name: page
         required: false
         in: query
@@ -20,8 +58,17 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: research_year
+        schema:
+          type: integer
+        description: 조사년도. 항상 정확 일치합니다.
+        examples:
+          ResearchYear:
+            value: 2019
+            summary: Research year
       tags:
-      - api
+      - foods
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -33,11 +80,44 @@ paths:
               schema:
                 $ref: '#/components/schemas/PaginatedFoodList'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                ValidationError:
+                  value:
+                    error:
+                      status: 400
+                      code: validation_error
+                      details:
+                        food_cd:
+                        - food with this food cd already exists.
+                  summary: Validation error
+          description: 요청값 또는 검색 조건이 올바르지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
     post:
-      operationId: api_foods_create
+      operationId: foods_create
       description: CRUD API for food items with case-insensitive filtering.
+      summary: 식품 생성
       tags:
-      - api
+      - foods
       requestBody:
         content:
           application/json:
@@ -61,10 +141,43 @@ paths:
               schema:
                 $ref: '#/components/schemas/Food'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                ValidationError:
+                  value:
+                    error:
+                      status: 400
+                      code: validation_error
+                      details:
+                        food_cd:
+                        - food with this food cd already exists.
+                  summary: Validation error
+          description: 요청값 또는 검색 조건이 올바르지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
   /api/foods/{id}/:
     get:
-      operationId: api_foods_retrieve
+      operationId: foods_retrieve
       description: CRUD API for food items with case-insensitive filtering.
+      summary: 식품 상세 조회
       parameters:
       - in: path
         name: id
@@ -73,7 +186,7 @@ paths:
         description: A unique value identifying this food.
         required: true
       tags:
-      - api
+      - foods
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -85,9 +198,42 @@ paths:
               schema:
                 $ref: '#/components/schemas/Food'
           description: ''
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                FoodNotFound:
+                  value:
+                    error:
+                      status: 404
+                      code: not_found
+                      details:
+                        detail:
+                        - No Food matches the given query.
+                  summary: Food not found
+          description: 요청한 식품이 존재하지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
     put:
-      operationId: api_foods_update
+      operationId: foods_update
       description: CRUD API for food items with case-insensitive filtering.
+      summary: 식품 전체 수정
       parameters:
       - in: path
         name: id
@@ -96,7 +242,7 @@ paths:
         description: A unique value identifying this food.
         required: true
       tags:
-      - api
+      - foods
       requestBody:
         content:
           application/json:
@@ -120,9 +266,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/Food'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                ValidationError:
+                  value:
+                    error:
+                      status: 400
+                      code: validation_error
+                      details:
+                        food_cd:
+                        - food with this food cd already exists.
+                  summary: Validation error
+          description: 요청값 또는 검색 조건이 올바르지 않습니다.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                FoodNotFound:
+                  value:
+                    error:
+                      status: 404
+                      code: not_found
+                      details:
+                        detail:
+                        - No Food matches the given query.
+                  summary: Food not found
+          description: 요청한 식품이 존재하지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
     patch:
-      operationId: api_foods_partial_update
+      operationId: foods_partial_update
       description: CRUD API for food items with case-insensitive filtering.
+      summary: 식품 일부 수정
       parameters:
       - in: path
         name: id
@@ -131,7 +326,7 @@ paths:
         description: A unique value identifying this food.
         required: true
       tags:
-      - api
+      - foods
       requestBody:
         content:
           application/json:
@@ -154,9 +349,58 @@ paths:
               schema:
                 $ref: '#/components/schemas/Food'
           description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                ValidationError:
+                  value:
+                    error:
+                      status: 400
+                      code: validation_error
+                      details:
+                        food_cd:
+                        - food with this food cd already exists.
+                  summary: Validation error
+          description: 요청값 또는 검색 조건이 올바르지 않습니다.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                FoodNotFound:
+                  value:
+                    error:
+                      status: 404
+                      code: not_found
+                      details:
+                        detail:
+                        - No Food matches the given query.
+                  summary: Food not found
+          description: 요청한 식품이 존재하지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
     delete:
-      operationId: api_foods_destroy
+      operationId: foods_destroy
       description: CRUD API for food items with case-insensitive filtering.
+      summary: 식품 삭제
       parameters:
       - in: path
         name: id
@@ -165,7 +409,7 @@ paths:
         description: A unique value identifying this food.
         required: true
       tags:
-      - api
+      - foods
       security:
       - cookieAuth: []
       - basicAuth: []
@@ -173,8 +417,61 @@ paths:
       responses:
         '204':
           description: No response body
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                FoodNotFound:
+                  value:
+                    error:
+                      status: 404
+                      code: not_found
+                      details:
+                        detail:
+                        - No Food matches the given query.
+                  summary: Food not found
+          description: 요청한 식품이 존재하지 않습니다.
+        '500':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorEnvelope'
+              examples:
+                InternalServerError:
+                  value:
+                    error:
+                      status: 500
+                      code: internal_server_error
+                      details:
+                        detail:
+                        - An unexpected error occurred.
+                  summary: Internal server error
+          description: 예상하지 못한 서버 오류입니다.
 components:
   schemas:
+    ApiError:
+      type: object
+      properties:
+        status:
+          type: integer
+        code:
+          type: string
+        details:
+          type: object
+          additionalProperties: {}
+      required:
+      - code
+      - details
+      - status
+    ApiErrorEnvelope:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/ApiError'
+      required:
+      - error
     Food:
       type: object
       properties:
