@@ -170,10 +170,3 @@ LOGGING = {
         },
     },
 }
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "Food Nutrition API",
-    "DESCRIPTION": "Search and manage Korean food nutrition data.",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-}
