@@ -43,7 +43,13 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "nutrition",
     "rest_framework",
+    "drf_spectacular",
 ]
+
+REST_FRAMEWORK = {
+    "EXCEPTION_HANDLER": "config.exceptions.api_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

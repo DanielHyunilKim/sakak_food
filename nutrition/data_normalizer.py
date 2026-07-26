@@ -28,6 +28,7 @@ TEXT_COLUMNS = [
 REQUIRED_COLUMNS = [
     "id",
     "food_cd",
+    "food_name",
     "research_year",
 ]
 
@@ -52,17 +53,17 @@ def normalize_food_df(food_df: pd.DataFrame) -> pd.DataFrame:
             .map(lambda value: Decimal(str(value)))
         )
 
-    # Missing optional text becomes an empty string.
-    normalized_df[TEXT_COLUMNS] = normalized_df[TEXT_COLUMNS].fillna("")
-
     # Convert year to a nullable integer before validating it.
     normalized_df["research_year"] = pd.to_numeric(
         normalized_df["research_year"],
         errors="coerce",
     ).astype("Int64")
 
-    # Identifiers should not be fabricated.
+    # Rows missing required identity or display fields cannot be imported.
     normalized_df = normalized_df.dropna(subset=REQUIRED_COLUMNS)
+
+    # Missing optional text becomes an empty string.
+    normalized_df[TEXT_COLUMNS] = normalized_df[TEXT_COLUMNS].fillna("")
 
     normalized_df["id"] = normalized_df["id"].astype(str).str.strip()
     normalized_df["food_cd"] = normalized_df["food_cd"].astype(str).str.strip()

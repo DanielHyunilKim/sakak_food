@@ -57,7 +57,7 @@ def test_normalizes_missing_optional_text_and_required_field_types():
                 research_year="2023",
                 group_name_major="-",
                 group_name_minor="  -  ",
-                food_name="",
+                food_name="꿩불고기",
                 maker_name="   ",
                 ref_name=None,
                 serving_size=pd.NA,
@@ -69,7 +69,11 @@ def test_normalizes_missing_optional_text_and_required_field_types():
     normalized_df = normalize_food_df(food_df)
     normalized_row = normalized_df.iloc[0]
 
-    assert all(normalized_row[column] == "" for column in TEXT_COLUMNS)
+    optional_text_columns = set(TEXT_COLUMNS) - {"food_name"}
+    assert all(
+        normalized_row[column] == "" for column in optional_text_columns
+    )
+    assert normalized_row["food_name"] == "꿩불고기"
     assert normalized_row["id"] == "sample-1"
     assert normalized_row["food_cd"] == "food-1"
     assert normalized_row["research_year"] == 2023
@@ -81,6 +85,9 @@ def test_drops_rows_with_missing_or_invalid_required_values():
             make_food_row(id="valid"),
             make_food_row(id="-"),
             make_food_row(food_cd=None),
+            make_food_row(food_name=None),
+            make_food_row(food_name="   "),
+            make_food_row(food_name="-"),
             make_food_row(research_year="not-a-year"),
         ]
     )

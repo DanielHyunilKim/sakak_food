@@ -53,7 +53,7 @@ class FoodSerializer(serializers.ModelSerializer):
             "trans_fat": {"min_value": Decimal("0")},
         }
 
-    def get_group_name(self, obj):
+    def get_group_name(self, obj) -> str:
         return f"{obj.group_name_major} - {obj.group_name_minor}"
 
     def validate_id(self, value):

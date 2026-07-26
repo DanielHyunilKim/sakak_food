@@ -41,6 +41,23 @@ def test_food_crud(api_client, food_payload):
     assert not Food.objects.filter(pk=food_payload["id"]).exists()
 
 
+def test_duplicate_food_code_returns_400(api_client, food_payload):
+    create_food(food_payload)
+    duplicate_payload = food_payload | {"id": "DUPLICATE-SAMPLE-ID"}
+
+    response = api_client.post(
+        "/api/foods/",
+        duplicate_payload,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["error"]["status"] == 400
+    assert response.data["error"]["code"] == "validation_error"
+    assert "food_cd" in response.data["error"]["details"]
+    assert Food.objects.filter(food_cd=food_payload["food_cd"]).count() == 1
+
+
 def test_partial_search_trims_spaces(
     api_client,
     food_payload,
@@ -177,7 +194,9 @@ def test_invalid_search_parameters_return_400(
     response = api_client.get("/api/foods/", query)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert error_field in response.data
+    assert response.data["error"]["status"] == 400
+    assert response.data["error"]["code"] == "validation_error"
+    assert error_field in response.data["error"]["details"]
 
 
 def test_list_is_paginated(api_client, food_payload):
@@ -208,3 +227,36 @@ def test_missing_food_returns_404(api_client):
     response = api_client.get("/api/foods/missing/")
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data["error"]["status"] == 404
+    assert response.data["error"]["code"] == "not_found"
+    assert "detail" in response.data["error"]["details"]
+
+
+def test_malformed_json_uses_standard_error_shape(api_client):
+    response = api_client.generic(
+        "POST",
+        "/api/foods/",
+        '{"id":',
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["error"]["status"] == 400
+    assert response.data["error"]["code"] == "parse_error"
+    assert "detail" in response.data["error"]["details"]
+
+
+def test_unsupported_method_uses_standard_error_shape(
+    api_client,
+    food_payload,
+):
+    response = api_client.post(
+        f"/api/foods/{food_payload['id']}/",
+        food_payload,
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_405_METHOD_NOT_ALLOWED
+    assert response.data["error"]["status"] == 405
+    assert response.data["error"]["code"] == "method_not_allowed"
+    assert "detail" in response.data["error"]["details"]

@@ -1,0 +1,357 @@
+openapi: 3.0.3
+info:
+  title: ''
+  version: 0.0.0
+paths:
+  /api/foods/:
+    get:
+      operationId: api_foods_list
+      description: CRUD API for food items with case-insensitive filtering.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedFoodList'
+          description: ''
+    post:
+      operationId: api_foods_create
+      description: CRUD API for food items with case-insensitive filtering.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Food'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Food'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Food'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+          description: ''
+  /api/foods/{id}/:
+    get:
+      operationId: api_foods_retrieve
+      description: CRUD API for food items with case-insensitive filtering.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this food.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+          description: ''
+    put:
+      operationId: api_foods_update
+      description: CRUD API for food items with case-insensitive filtering.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this food.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Food'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Food'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Food'
+        required: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+          description: ''
+    patch:
+      operationId: api_foods_partial_update
+      description: CRUD API for food items with case-insensitive filtering.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this food.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedFood'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedFood'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedFood'
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Food'
+          description: ''
+    delete:
+      operationId: api_foods_destroy
+      description: CRUD API for food items with case-insensitive filtering.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        description: A unique value identifying this food.
+        required: true
+      tags:
+      - api
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      - {}
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    Food:
+      type: object
+      properties:
+        id:
+          type: string
+        food_cd:
+          type: string
+        group_name:
+          type: string
+          readOnly: true
+        group_name_major:
+          type: string
+        group_name_minor:
+          type: string
+        food_name:
+          type: string
+        research_year:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        maker_name:
+          type: string
+        ref_name:
+          type: string
+        serving_size:
+          type: string
+        serving_size_unit:
+          type: string
+        calorie:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        carbohydrate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        protein:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        fat:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        sugars:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        sodium:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        cholesterol:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        saturated_fatty_acids:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        trans_fat:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+      required:
+      - calorie
+      - carbohydrate
+      - cholesterol
+      - fat
+      - food_cd
+      - food_name
+      - group_name
+      - group_name_major
+      - group_name_minor
+      - id
+      - maker_name
+      - protein
+      - ref_name
+      - research_year
+      - saturated_fatty_acids
+      - serving_size
+      - serving_size_unit
+      - sodium
+      - sugars
+      - trans_fat
+    PaginatedFoodList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Food'
+    PatchedFood:
+      type: object
+      properties:
+        id:
+          type: string
+        food_cd:
+          type: string
+        group_name:
+          type: string
+          readOnly: true
+        group_name_major:
+          type: string
+        group_name_minor:
+          type: string
+        food_name:
+          type: string
+        research_year:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        maker_name:
+          type: string
+        ref_name:
+          type: string
+        serving_size:
+          type: string
+        serving_size_unit:
+          type: string
+        calorie:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        carbohydrate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        protein:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        fat:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        sugars:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        sodium:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        cholesterol:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        saturated_fatty_acids:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+        trans_fat:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
